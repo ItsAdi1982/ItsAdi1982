@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aditya | Coder & Gamer</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    canvas { display: block; margin: auto; }
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+  <header class="text-center p-8">
+    <h1 class="text-4xl font-bold">Hey, I'm Aditya 👋</h1>
+    <p class="text-xl mt-2">Coder. Gamer. Marvel Fan.</p>
+  </header>
+
+  <section class="max-w-4xl mx-auto p-4">
+    <h2 class="text-2xl font-semibold mb-2">About Me</h2>
+    <p class="mb-4">
+      I'm Aditya, a tech enthusiast who thrives in the world of coding and gaming. Whether it's crafting cool programs or diving into immersive games, I'm always ready to learn, build, and level up. When I’m not exploring game worlds, I’m usually learning new tech or vibing with some good series.
+    </p>
+
+    <h2 class="text-2xl font-semibold mb-2">🎮 Favorite Games</h2>
+    <ul class="list-disc ml-6">
+      <li><strong>Android:</strong> Shadow Fight 2, Swordigo, Alto’s Odyssey</li>
+      <li><strong>PC:</strong> Cave Story, GTA V, FarCry 3 & 4</li>
+      <li><strong>Console:</strong> The Last of Us I & II, God of War 3</li>
+    </ul>
+
+    <h2 class="text-2xl font-semibold mt-6 mb-2">📺 Favorite Series</h2>
+    <ul class="list-disc ml-6">
+      <li>Squid Game</li>
+      <li>Alice in Borderland</li>
+      <li>Dark</li>
+      <li>Stranger Things</li>
+      <li>Money Heist</li>
+    </ul>
+  </section>
+
+  <section class="text-center p-8">
+    <h2 class="text-3xl font-bold mb-4">🕹 Play Flappy Bird!</h2>
+    <canvas id="gameCanvas" width="320" height="480"></canvas>
+  </section>
+
+  <section class="text-center p-6">
+    <h2 class="text-xl font-semibold mb-2">📬 Contact</h2>
+    <p>Discord: <code>itsadi1982</code></p>
+    <p>GitHub: <a href="https://github.com/ItsAdi1982" class="text-blue-400 underline">ItsAdi1982</a></p>
+  </section>
+
+  <script>
+    // Simple Flappy Bird Clone
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let birdY = 150, gravity = 1.5, velocity = 0;
+    let pipes = [], score = 0, gameOver = false;
+
+    function drawBird() {
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(50, birdY, 15, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPipes() {
+      pipes.forEach(pipe => {
+        ctx.fillStyle = '#4ade80';
+        ctx.fillRect(pipe.x, 0, 40, pipe.top);
+        ctx.fillRect(pipe.x, pipe.top + 120, 40, canvas.height);
+      });
+    }
+
+    function updateGame() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawBird();
+      drawPipes();
+
+      velocity += gravity;
+      birdY += velocity;
+
+      // Create and move pipes
+      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 150) {
+        let top = Math.floor(Math.random() * 200) + 50;
+        pipes.push({ x: canvas.width, top });
+      }
+
+      pipes.forEach(pipe => pipe.x -= 2);
+
+      // Collision
+      pipes.forEach(pipe => {
+        if (50 > pipe.x && 50 < pipe.x + 40) {
+          if (birdY < pipe.top || birdY > pipe.top + 120) gameOver = true;
+        }
+      });
+
+      if (birdY > canvas.height || birdY < 0) gameOver = true;
+
+      if (!gameOver) requestAnimationFrame(updateGame);
+      else ctx.fillText("Game Over! Score: " + score, 60, 240);
+
+      pipes = pipes.filter(pipe => pipe.x > -40);
+
+      pipes.forEach(pipe => {
+        if (pipe.x === 49) score++;
+      });
+
+      ctx.fillStyle = 'white';
+      ctx.font = '20px sans-serif';
+      ctx.fillText("Score: " + score, 10, 30);
+    }
+
+    window.addEventListener('keydown', () => {
+      if (!gameOver) velocity = -10;
+    });
+
+    updateGame();
+  </script>
+</body>
+</html>
