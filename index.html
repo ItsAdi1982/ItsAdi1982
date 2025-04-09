@@ -7,27 +7,48 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body { font-family: 'Poppins', sans-serif; }
-    canvas { display: block; margin: auto; }
+    canvas { display: block; margin: auto; background: #111827; border-radius: 0.5rem; }
+    .fade-in { animation: fadeIn 1s ease-in forwards; opacity: 0; }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-white">
-  <header class="text-center p-8">
+  <header class="text-center p-8 fade-in">
     <h1 class="text-4xl font-bold">Hey, I'm Aditya 👋</h1>
     <p class="text-xl mt-2">Coder. Gamer. Marvel Fan.</p>
   </header>
 
-  <section class="max-w-4xl mx-auto p-4">
+  <section class="max-w-4xl mx-auto p-4 fade-in">
     <h2 class="text-2xl font-semibold mb-2">About Me</h2>
     <p class="mb-4">
       I'm Aditya, a tech enthusiast who thrives in the world of coding and gaming. Whether it's crafting cool programs or diving into immersive games, I'm always ready to learn, build, and level up. When I’m not exploring game worlds, I’m usually learning new tech or vibing with some good series.
     </p>
 
     <h2 class="text-2xl font-semibold mb-2">🎮 Favorite Games</h2>
-    <ul class="list-disc ml-6">
-      <li><strong>Android:</strong> Shadow Fight 2, Swordigo, Alto’s Odyssey</li>
-      <li><strong>PC:</strong> Cave Story, GTA V, FarCry 3 & 4</li>
-      <li><strong>Console:</strong> The Last of Us I & II, God of War 3</li>
-    </ul>
+    <table class="w-full text-left border border-gray-700 mb-4">
+      <thead>
+        <tr class="bg-gray-800">
+          <th class="p-2">Platform</th>
+          <th class="p-2">Games</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-t border-gray-700">
+          <td class="p-2">Android</td>
+          <td class="p-2">Shadow Fight 2, Swordigo, Alto’s Odyssey</td>
+        </tr>
+        <tr class="border-t border-gray-700">
+          <td class="p-2">PC</td>
+          <td class="p-2">Cave Story, GTA V, FarCry 3 & 4</td>
+        </tr>
+        <tr class="border-t border-gray-700">
+          <td class="p-2">Console</td>
+          <td class="p-2">The Last of Us I & II, God of War 3</td>
+        </tr>
+      </tbody>
+    </table>
 
     <h2 class="text-2xl font-semibold mt-6 mb-2">📺 Favorite Series</h2>
     <ul class="list-disc ml-6">
@@ -39,82 +60,106 @@
     </ul>
   </section>
 
-  <section class="text-center p-8">
+  <section class="text-center p-8 fade-in">
     <h2 class="text-3xl font-bold mb-4">🕹 Play Flappy Bird!</h2>
     <canvas id="gameCanvas" width="320" height="480"></canvas>
+    <p class="text-sm mt-2 text-gray-400">Press any key to flap!</p>
   </section>
 
-  <section class="text-center p-6">
+  <section class="text-center p-6 fade-in">
     <h2 class="text-xl font-semibold mb-2">📬 Contact</h2>
     <p>Discord: <code>itsadi1982</code></p>
     <p>GitHub: <a href="https://github.com/ItsAdi1982" class="text-blue-400 underline">ItsAdi1982</a></p>
   </section>
 
   <script>
-    // Simple Flappy Bird Clone
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    let birdY = 150, gravity = 1.5, velocity = 0;
-    let pipes = [], score = 0, gameOver = false;
+
+    let bird = { x: 50, y: 150, radius: 15, velocity: 0 };
+    let gravity = 0.6;
+    let lift = -10;
+    let pipes = [];
+    let score = 0;
+    let gameOver = false;
 
     function drawBird() {
-      ctx.fillStyle = '#FFD700';
+      ctx.fillStyle = 'yellow';
       ctx.beginPath();
-      ctx.arc(50, birdY, 15, 0, Math.PI * 2);
+      ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
       ctx.fill();
     }
 
     function drawPipes() {
-      pipes.forEach(pipe => {
-        ctx.fillStyle = '#4ade80';
-        ctx.fillRect(pipe.x, 0, 40, pipe.top);
-        ctx.fillRect(pipe.x, pipe.top + 120, 40, canvas.height);
-      });
+      ctx.fillStyle = '#4ade80';
+      for (let i = 0; i < pipes.length; i++) {
+        const p = pipes[i];
+        ctx.fillRect(p.x, 0, p.width, p.top);
+        ctx.fillRect(p.x, p.top + p.gap, p.width, canvas.height);
+      }
     }
 
     function updateGame() {
       if (gameOver) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      drawBird();
-      drawPipes();
+      bird.velocity += gravity;
+      bird.y += bird.velocity;
 
-      velocity += gravity;
-      birdY += velocity;
-
-      // Create and move pipes
-      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 150) {
-        let top = Math.floor(Math.random() * 200) + 50;
-        pipes.push({ x: canvas.width, top });
+      if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
+        endGame();
+        return;
       }
 
-      pipes.forEach(pipe => pipe.x -= 2);
+      // Pipes logic
+      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 150) {
+        let top = Math.floor(Math.random() * 200) + 20;
+        pipes.push({ x: canvas.width, top: top, gap: 120, width: 40 });
+      }
 
-      // Collision
-      pipes.forEach(pipe => {
-        if (50 > pipe.x && 50 < pipe.x + 40) {
-          if (birdY < pipe.top || birdY > pipe.top + 120) gameOver = true;
+      for (let i = 0; i < pipes.length; i++) {
+        let p = pipes[i];
+        p.x -= 2;
+
+        // Collision detection
+        if (
+          bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + p.width &&
+          (bird.y - bird.radius < p.top || bird.y + bird.radius > p.top + p.gap)
+        ) {
+          endGame();
+          return;
         }
-      });
 
-      if (birdY > canvas.height || birdY < 0) gameOver = true;
+        if (p.x + p.width === bird.x) {
+          score++;
+        }
+      }
 
-      if (!gameOver) requestAnimationFrame(updateGame);
-      else ctx.fillText("Game Over! Score: " + score, 60, 240);
+      pipes = pipes.filter(p => p.x + p.width > 0);
 
-      pipes = pipes.filter(pipe => pipe.x > -40);
-
-      pipes.forEach(pipe => {
-        if (pipe.x === 49) score++;
-      });
+      drawBird();
+      drawPipes();
 
       ctx.fillStyle = 'white';
       ctx.font = '20px sans-serif';
       ctx.fillText("Score: " + score, 10, 30);
+
+      requestAnimationFrame(updateGame);
+    }
+
+    function endGame() {
+      gameOver = true;
+      ctx.fillStyle = 'red';
+      ctx.font = '24px sans-serif';
+      ctx.fillText("Game Over! Score: " + score, 60, canvas.height / 2);
     }
 
     window.addEventListener('keydown', () => {
-      if (!gameOver) velocity = -10;
+      if (!gameOver) {
+        bird.velocity = lift;
+      } else {
+        location.reload();
+      }
     });
 
     updateGame();
