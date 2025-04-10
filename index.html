@@ -81,32 +81,33 @@
  <script>
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
+  let currentGame = 'snake';
 
+  // Shared values for Snake
+  let snake, velocity, food, score, gameOver, started;
   const gridSize = 20;
   const tileCount = canvas.width / gridSize;
-  let snake = [{ x: 10, y: 10 }];
-  let velocity = { x: 0, y: 0 };
-  let food = { x: 5, y: 5 };
-  let score = 0;
-  let gameOver = false;
-  let started = false;
 
-  function drawGrid() {
-    ctx.strokeStyle = '#374151';
-    for (let i = 0; i < tileCount; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * gridSize, 0);
-      ctx.lineTo(i * gridSize, canvas.height);
-      ctx.stroke();
+  // Values for Clicker Game
+  let clicks = 0;
 
-      ctx.beginPath();
-      ctx.moveTo(0, i * gridSize);
-      ctx.lineTo(canvas.width, i * gridSize);
-      ctx.stroke();
-    }
+  function switchGame(game) {
+    currentGame = game;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (game === 'snake') initSnakeGame();
+    else if (game === 'clicker') initClickerGame();
   }
 
-  function draw() {
+  function initSnakeGame() {
+    snake = [{ x: 10, y: 10 }];
+    velocity = { x: 0, y: 0 };
+    food = { x: 5, y: 5 };
+    score = 0;
+    gameOver = false;
+    started = false;
+  }
+
+  function drawSnakeGame() {
     if (gameOver) {
       ctx.fillStyle = 'red';
       ctx.font = '24px sans-serif';
@@ -149,7 +150,7 @@
     ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
     for (let i = 0; i < snake.length; i++) {
-      ctx.fillStyle = i === 0 ? '#f87171' : '#4ade80'; // red head
+      ctx.fillStyle = i === 0 ? '#f87171' : '#4ade80';
       ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 1, gridSize - 1);
     }
 
@@ -158,8 +159,50 @@
     ctx.fillText("Score: " + score, 10, 25);
   }
 
+  function drawGrid() {
+    ctx.strokeStyle = '#374151';
+    for (let i = 0; i < tileCount; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * gridSize, 0);
+      ctx.lineTo(i * gridSize, canvas.height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, i * gridSize);
+      ctx.lineTo(canvas.width, i * gridSize);
+      ctx.stroke();
+    }
+  }
+
+  function initClickerGame() {
+    clicks = 0;
+    canvas.addEventListener('click', handleClickerClick);
+  }
+
+  function handleClickerClick() {
+    if (currentGame !== 'clicker') return;
+    clicks++;
+  }
+
+  function drawClickerGame() {
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 60, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'white';
+    ctx.font = '24px sans-serif';
+    ctx.fillText("Clicks: " + clicks, 140, 50);
+    ctx.font = '18px sans-serif';
+    ctx.fillText("Click the blue circle!", 120, canvas.height / 2 + 100);
+  }
+
   window.addEventListener('keydown', e => {
-    e.preventDefault(); // ⛔ prevent arrow keys from scrolling page
+    if (currentGame !== 'snake') return;
+    e.preventDefault();
     if (gameOver) return location.reload();
 
     switch (e.key) {
@@ -172,7 +215,14 @@
     if (!started) started = true;
   });
 
-  setInterval(draw, 100);
+  function gameLoop() {
+    if (currentGame === 'snake') drawSnakeGame();
+    else if (currentGame === 'clicker') drawClickerGame();
+    requestAnimationFrame(gameLoop);
+  }
+
+  initSnakeGame();
+  gameLoop();
 </script>
 </body>
 </html>
