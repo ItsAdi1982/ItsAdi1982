@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aditya | Coder & Gamer</title>
+  <title>ItsAdi1982</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body { font-family: 'Poppins', sans-serif; }
@@ -64,7 +64,7 @@
   </section>
 
   <section class="text-center p-8 fade-in">
-    <h2 class="text-3xl font-bold mb-4">🕹 Play Flappy Bird!</h2>
+    <h2 class="text-3xl font-bold mb-4">🕹 Play FSanke game!</h2>
     <canvas id="gameCanvas" width="320" height="480"></canvas>
     <p class="text-sm mt-2 text-gray-400">Press any key to flap!</p>
   </section>
@@ -76,96 +76,82 @@
   </section>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
 
-    let bird = { x: 50, y: 150, radius: 15, velocity: 0 };
-    let gravity = 0.6;
-    let lift = -10;
-    let pipes = [];
-    let score = 0;
-    let gameOver = false;
+  const gridSize = 20;
+  const tileCount = canvas.width / gridSize;
+  let snake = [{ x: 10, y: 10 }];
+  let velocity = { x: 0, y: 0 };
+  let food = { x: 5, y: 5 };
+  let score = 0;
+  let gameOver = false;
 
-    function drawBird() {
-      ctx.fillStyle = 'yellow';
-      ctx.beginPath();
-      ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    function drawPipes() {
-      ctx.fillStyle = '#4ade80';
-      for (let i = 0; i < pipes.length; i++) {
-        const p = pipes[i];
-        ctx.fillRect(p.x, 0, p.width, p.top);
-        ctx.fillRect(p.x, p.top + p.gap, p.width, canvas.height);
-      }
-    }
-
-    function updateGame() {
-      if (gameOver) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      bird.velocity += gravity;
-      bird.y += bird.velocity;
-
-      if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
-        endGame();
-        return;
-      }
-
-      // Pipes logic
-      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 150) {
-        let top = Math.floor(Math.random() * 200) + 20;
-        pipes.push({ x: canvas.width, top: top, gap: 120, width: 40 });
-      }
-
-      for (let i = 0; i < pipes.length; i++) {
-        let p = pipes[i];
-        p.x -= 2;
-
-        // Collision detection
-        if (
-          bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + p.width &&
-          (bird.y - bird.radius < p.top || bird.y + bird.radius > p.top + p.gap)
-        ) {
-          endGame();
-          return;
-        }
-
-        if (p.x + p.width === bird.x) {
-          score++;
-        }
-      }
-
-      pipes = pipes.filter(p => p.x + p.width > 0);
-
-      drawBird();
-      drawPipes();
-
-      ctx.fillStyle = 'white';
-      ctx.font = '20px sans-serif';
-      ctx.fillText("Score: " + score, 10, 30);
-
-      requestAnimationFrame(updateGame);
-    }
-
-    function endGame() {
-      gameOver = true;
+  function draw() {
+    if (gameOver) {
       ctx.fillStyle = 'red';
       ctx.font = '24px sans-serif';
-      ctx.fillText("Game Over! Score: " + score, 60, canvas.height / 2);
+      ctx.fillText("Game Over! Score: " + score, 40, canvas.height / 2);
+      return;
     }
 
-    window.addEventListener('keydown', () => {
-      if (!gameOver) {
-        bird.velocity = lift;
-      } else {
-        location.reload();
-      }
-    });
+    // Clear canvas
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    updateGame();
-  </script>
+    // Draw food
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+    // Move snake
+    const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
+    snake.unshift(head);
+
+    // Check food collision
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      food = {
+        x: Math.floor(Math.random() * tileCount),
+        y: Math.floor(Math.random() * tileCount),
+      };
+    } else {
+      snake.pop();
+    }
+
+    // Check wall collision
+    if (
+      head.x < 0 || head.y < 0 ||
+      head.x >= tileCount || head.y >= tileCount ||
+      snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
+    ) {
+      gameOver = true;
+    }
+
+    // Draw snake
+    ctx.fillStyle = '#4ade80';
+    for (let segment of snake) {
+      ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
+    }
+
+    // Score
+    ctx.fillStyle = 'white';
+    ctx.font = '18px sans-serif';
+    ctx.fillText("Score: " + score, 10, 25);
+  }
+
+  window.addEventListener('keydown', e => {
+    if (gameOver) {
+      location.reload();
+    }
+    switch (e.key) {
+      case 'ArrowUp': if (velocity.y === 0) velocity = { x: 0, y: -1 }; break;
+      case 'ArrowDown': if (velocity.y === 0) velocity = { x: 0, y: 1 }; break;
+      case 'ArrowLeft': if (velocity.x === 0) velocity = { x: -1, y: 0 }; break;
+      case 'ArrowRight': if (velocity.x === 0) velocity = { x: 1, y: 0 }; break;
+    }
+  });
+
+  setInterval(draw, 100);
+</script>
 </body>
 </html>
