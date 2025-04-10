@@ -65,8 +65,8 @@
 
   <section class="text-center p-8 fade-in">
     <h2 class="text-3xl font-bold mb-4">🕹 Play FSanke game!</h2>
-    <canvas id="gameCanvas" width="320" height="480"></canvas>
-    <p class="text-sm mt-2 text-gray-400">Press any key to flap!</p>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <p class="text-sm mt-2 text-gray-400">Press arrow keys for snake movement</p>
   </section>
 
   <section class="text-center p-6 fade-in">
@@ -87,11 +87,26 @@
   let score = 0;
   let gameOver = false;
 
+  function drawGrid() {
+    ctx.strokeStyle = '#374151'; // subtle grid lines
+    for (let i = 0; i < tileCount; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * gridSize, 0);
+      ctx.lineTo(i * gridSize, canvas.height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, i * gridSize);
+      ctx.lineTo(canvas.width, i * gridSize);
+      ctx.stroke();
+    }
+  }
+
   function draw() {
     if (gameOver) {
       ctx.fillStyle = 'red';
       ctx.font = '24px sans-serif';
-      ctx.fillText("Game Over! Score: " + score, 40, canvas.height / 2);
+      ctx.fillText("Game Over! Score: " + score, 50, canvas.height / 2);
       return;
     }
 
@@ -99,15 +114,21 @@
     ctx.fillStyle = '#111827';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw food
-    ctx.fillStyle = '#facc15';
-    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    drawGrid();
 
     // Move snake
-    const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
+    const head = {
+      x: (snake[0].x + velocity.x + tileCount) % tileCount,
+      y: (snake[0].y + velocity.y + tileCount) % tileCount
+    };
     snake.unshift(head);
 
-    // Check food collision
+    // Check self collision
+    if (snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)) {
+      gameOver = true;
+    }
+
+    // Check food
     if (head.x === food.x && head.y === food.y) {
       score++;
       food = {
@@ -118,22 +139,17 @@
       snake.pop();
     }
 
-    // Check wall collision
-    if (
-      head.x < 0 || head.y < 0 ||
-      head.x >= tileCount || head.y >= tileCount ||
-      snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
-    ) {
-      gameOver = true;
-    }
+    // Draw food
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
     // Draw snake
-    ctx.fillStyle = '#4ade80';
-    for (let segment of snake) {
-      ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
+    for (let i = 0; i < snake.length; i++) {
+      ctx.fillStyle = i === 0 ? '#f87171' : '#4ade80'; // red head, green body
+      ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 1, gridSize - 1);
     }
 
-    // Score
+    // Draw score
     ctx.fillStyle = 'white';
     ctx.font = '18px sans-serif';
     ctx.fillText("Score: " + score, 10, 25);
