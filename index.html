@@ -386,18 +386,26 @@ function drawTicTacToe() {
 }
 
 window.addEventListener('keydown', e => {
-  if (currentGame !== 'snake') return;
-  e.preventDefault();
-  if (gameOver) return location.reload();
-
-  switch (e.key) {
-    case 'ArrowUp': if (velocity.y === 0) velocity = { x: 0, y: -1 }; break;
-    case 'ArrowDown': if (velocity.y === 0) velocity = { x: 0, y: 1 }; break;
-    case 'ArrowLeft': if (velocity.x === 0) velocity = { x: -1, y: 0 }; break;
-    case 'ArrowRight': if (velocity.x === 0) velocity = { x: 1, y: 0 }; break;
+  // Prevent arrow keys from scrolling the page during snake or pong
+  if (currentGame === 'snake' || currentGame === 'pong') {
+    e.preventDefault();
   }
 
-  if (!started) started = true;
+  if (currentGame === 'snake') {
+    if (gameOver) return location.reload();
+    switch (e.key) {
+      case 'ArrowUp': if (velocity.y === 0) velocity = { x: 0, y: -1 }; break;
+      case 'ArrowDown': if (velocity.y === 0) velocity = { x: 0, y: 1 }; break;
+      case 'ArrowLeft': if (velocity.x === 0) velocity = { x: -1, y: 0 }; break;
+      case 'ArrowRight': if (velocity.x === 0) velocity = { x: 1, y: 0 }; break;
+    }
+    if (!started) started = true;
+  }
+
+  if (currentGame === 'pong') {
+    if (e.key === 'ArrowUp') pongPlayerY -= pongPaddleSpeed;
+    else if (e.key === 'ArrowDown') pongPlayerY += pongPaddleSpeed;
+  }
 });
 
 let snakeTick = 0;
