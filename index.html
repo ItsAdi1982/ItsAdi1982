@@ -63,11 +63,14 @@
     </ul>
   </section>
 
-  <section class="text-center p-8 fade-in">
-    <h2 class="text-3xl font-bold mb-4">🕹 Play FSanke game!</h2>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <p class="text-sm mt-2 text-gray-400">Press arrow keys for snake movement</p>
-  </section>
+  <section class="text-center p-6 fade-in">
+  <h2 class="text-2xl font-bold mb-4">🎮 Play a Game</h2>
+  <div class="space-x-4 mb-4">
+    <button onclick="switchGame('snake')" class="bg-green-500 px-4 py-2 rounded hover:bg-green-600">🐍 Snake</button>
+    <button onclick="switchGame('clicker')" class="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">🖱️ Clicker</button>
+  </div>
+  <canvas id="gameCanvas" width="400" height="400" class="mx-auto mt-4"></canvas>
+</section>
 
   <section class="text-center p-6 fade-in">
     <h2 class="text-xl font-semibold mb-2">📬 Contact</h2>
