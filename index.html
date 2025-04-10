@@ -215,11 +215,19 @@
     if (!started) started = true;
   });
 
-  function gameLoop() {
-    if (currentGame === 'snake') drawSnakeGame();
-    else if (currentGame === 'clicker') drawClickerGame();
-    requestAnimationFrame(gameLoop);
+  let snakeTick = 0;
+function gameLoop() {
+  if (currentGame === 'snake') {
+    snakeTick++;
+    if (snakeTick % 10 === 0) drawSnakeGame(); // draw only every 10th frame
+  } else if (currentGame === 'clicker') {
+    drawClickerGame();
+  } else if (currentGame === 'brick') {
+    drawBrickGame();
   }
+
+  requestAnimationFrame(gameLoop);
+}
 
   initSnakeGame();
   gameLoop();
