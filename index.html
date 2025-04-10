@@ -312,19 +312,191 @@ function drawBrickGame() {
       case 'ArrowLeft': if (velocity.x === 0) velocity = { x: -1, y: 0 }; break;
       case 'ArrowRight': if (velocity.x === 0) velocity = { x: 1, y: 0 }; break;
     }
+     if (!started) started = true;
+  } else if (currentGame === 'pong') {
+    if (e.key === 'ArrowUp') pong.paddleLeft.y -= 20;
+    if (e.key === 'ArrowDown') pong.paddleLeft.y += 20;
+  }
+});
 
     if (!started) started = true;
   });
 
   let snakeTick = 0;
+
+// ================= Pong Game =================
+let pong = {
+  paddleLeft: { x: 10, y: 100, width: 10, height: 80 },
+  paddleRight: { x: canvas.width - 20, y: 100, width: 10, height: 80 },
+  ball: { x: canvas.width / 2, y: canvas.height / 2, dx: 4, dy: 4, radius: 6 },
+  leftScore: 0,
+  rightScore: 0
+};
+
+function initPongGame() {
+  pong.paddleLeft.y = 100;
+  pong.paddleRight.y = 100;
+  pong.ball = { x: canvas.width / 2, y: canvas.height / 2, dx: 4, dy: 4, radius: 6 };
+}
+
+function drawPongGame() {
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw paddles
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(pong.paddleLeft.x, pong.paddleLeft.y, pong.paddleLeft.width, pong.paddleLeft.height);
+  ctx.fillRect(pong.paddleRight.x, pong.paddleRight.y, pong.paddleRight.width, pong.paddleRight.height);
+
+  // Draw ball
+  ctx.beginPath();
+  ctx.arc(pong.ball.x, pong.ball.y, pong.ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#facc15';
+  ctx.fill();
+
+  // Move ball
+  pong.ball.x += pong.ball.dx;
+  pong.ball.y += pong.ball.dy;
+
+  // Bounce top/bottom
+  if (pong.ball.y <= 0 || pong.ball.y >= canvas.height) pong.ball.dy *= -1;
+
+  // Bounce off paddles
+  if (
+    pong.ball.x - pong.ball.radius < pong.paddleLeft.x + pong.paddleLeft.width &&
+    pong.ball.y > pong.paddleLeft.y &&
+    pong.ball.y < pong.paddleLeft.y + pong.paddleLeft.height
+  ) pong.ball.dx *= -1;
+
+  if (
+    pong.ball.x + pong.ball.radius > pong.paddleRight.x &&
+    pong.ball.y > pong.paddleRight.y &&
+    pong.ball.y < pong.paddleRight.y + pong.paddleRight.height
+  ) pong.ball.dx *= -1;
+
+  // Score system
+  if (pong.ball.x <= 0) {
+    pong.rightScore++;
+    initPongGame();
+  } else if (pong.ball.x >= canvas.width) {
+    pong.leftScore++;
+    initPongGame();
+  }
+
+  // AI for right paddle
+  pong.paddleRight.y += (pong.ball.y - pong.paddleRight.y - pong.paddleRight.height / 2) * 0.1;
+
+  // Draw scores
+  ctx.fillStyle = 'white';
+  ctx.font = '20px sans-serif';
+  ctx.fillText(pong.leftScore, canvas.width / 4, 30);
+  ctx.fillText(pong.rightScore, canvas.width * 3 / 4, 30);
+}
+
+// ================= Tic Tac Toe Game =================
+let board = [
+  ['', '', ''],
+  ['', '', ''],
+  ['', '', '']
+];
+let currentPlayer = 'X';
+let tttGameOver = false;
+
+function initTicTacToe() {
+  board = [
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', '']
+  ];
+  currentPlayer = 'X';
+  tttGameOver = false;
+
+  canvas.addEventListener('click', handleTicTacToeClick);
+}
+
+function drawTicTacToeGame() {
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const size = canvas.width / 3;
+
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 3;
+
+  for (let i = 1; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * size, 0);
+    ctx.lineTo(i * size, canvas.height);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, i * size);
+    ctx.lineTo(canvas.width, i * size);
+    ctx.stroke();
+  }
+
+  ctx.font = '60px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const val = board[r][c];
+      if (val !== '') {
+        ctx.fillStyle = val === 'X' ? '#f87171' : '#38bdf8';
+        ctx.fillText(val, c * size + size / 2, r * size + size / 2);
+      }
+    }
+  }
+
+  if (tttGameOver) {
+    ctx.fillStyle = 'white';
+    ctx.font = '24px sans-serif';
+    ctx.fillText('Game Over! Click to restart.', canvas.width / 2, canvas.height - 20);
+  }
+}
+
+function handleTicTacToeClick(e) {
+  if (currentGame !== 'tictactoe') return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const row = Math.floor(y / (canvas.height / 3));
+  const col = Math.floor(x / (canvas.width / 3));
+
+  if (tttGameOver || board[row][col] !== '') return;
+
+  board[row][col] = currentPlayer;
+  if (checkWin(currentPlayer)) {
+    tttGameOver = true;
+  } else {
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  }
+}
+
+function checkWin(player) {
+  for (let i = 0; i < 3; i++) {
+    if (board[i][0] === player && board[i][1] === player && board[i][2] === player) return true;
+    if (board[0][i] === player && board[1][i] === player && board[2][i] === player) return true;
+  }
+
+  if (board[0][0] === player && board[1][1] === player && board[2][2] === player) return true;
+  if (board[0][2] === player && board[1][1] === player && board
+
 function gameLoop() {
   if (currentGame === 'snake') {
     snakeTick++;
-    if (snakeTick % 10 === 0) drawSnakeGame(); // draw only every 10th frame
+    if (snakeTick % 10 === 0) drawSnakeGame();
   } else if (currentGame === 'clicker') {
     drawClickerGame();
   } else if (currentGame === 'brick') {
     drawBrickGame();
+  } else if (currentGame === 'pong') {
+    drawPongGame();
+  } else if (currentGame === 'tictactoe') {
+    drawTicTacToeGame();
   }
 
   requestAnimationFrame(gameLoop);
